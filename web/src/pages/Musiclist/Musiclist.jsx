@@ -2,20 +2,23 @@ import React, { useState } from "react";
 import axios from "axios";
 import ViewEditSong from "../../components/ViewEditSong";
 import DisplayList from "../../components/DisplayList/DisplayList";
+import { setSongInfo, toggleSave } from "../../store/slice";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import CreateSong from "../../components/CreateSong/CreateSong";
+import { ExtractRelevantInfo } from "../../utilities/ServiceProviderLocale/GetServiceField";
+import { matchYoutubeUrl } from "../../utilities/APICalls/Call";
+import { Container, Row, Col } from "react-bootstrap";
+import SwitchResult from "../../components/SwitchResult/SwitchResult";
+// import { fetchSongInfo } from "../../utilities/APICalls/Call";
 
 const Musiclist = () => {
-  const sampleSong = {
-    title: "What you need",
-    artist: "The Weeknd",
-    album: "House of Balloons",
-    genre: "R&B",
-    coverArt: "LINK_HERE",
-    time: 197,
-  };
-
-  const [youtubeLink, setYoutubeLink] = useState("");
-  const [serviceProvider, setServiceProvider] = useState("Apple");
-  const [song, setSong] = useState("");
+  const dispatch = useDispatch();
+  const { songInfo, youtubeLink, saved } = useSelector((state) => state.song);
+  const serviceProvider = "apple"; // will change to state to accomodate multiple services
+  const [songResults, setSongResults] = useState([]);
+  const [extractedSongResults, setExtractedSongResults] = useState([]);
+  const musicList = [];
 
   const fetchSongInfo = () => {
     axios
@@ -24,65 +27,50 @@ const Musiclist = () => {
         serviceProvider,
       })
       .then((result) => {
-        const songInfo = result.data;
-        setSong(songInfo);
-        console.log(songInfo);
+        const songList = result.data;
+        let extractedList = [];
+        if (serviceProvider === "apple") {
+          songList.results.forEach((item) => {
+            const extracted = ExtractRelevantInfo(item, serviceProvider);
+            extractedList.push(extracted);
+          });
+          const firstSongInfo = extractedList[0];
+          dispatch(setSongInfo(firstSongInfo));
+        }
+
+        setSongResults(songList);
+        setExtractedSongResults(extractedList);
       })
       .catch((error) => {
         console.log("[error youtubelink api call]: ", error);
       });
   };
 
-  const requestDownload = () => {
-    axios
-      .post(`http://localhost:4000/download`, {
-        youtubeLink,
-        location: "location",
-        song: "song here",
-      })
-      .then((result) => {
-        if (result.success) {
-          console.log("finished downloading");
-        } else {
-          console.log("[ERROR]: ", result.error);
-        }
-      })
-      .catch((error) => {
-        console.log("[error download api call]: ", error);
-      });
-  };
-
-  const switchServiceProvider = () => {
-    console.log("switching to");
-    if (serviceProvider === "Apple") {
-      setServiceProvider("Spotify");
-    } else {
-      setServiceProvider("Apple");
+  useEffect(() => {
+    if (saved) {
+      musicList.push(songInfo);
     }
-  };
+  }, [saved]);
+
+  useEffect(() => {
+    if (matchYoutubeUrl(youtubeLink)) {
+      fetchSongInfo(youtubeLink, "apple");
+    }
+  }, [youtubeLink]);
 
   return (
-    <div>
-      <p>Musiclist page</p>
-      <form>
-        <input
-          type="text"
-          placeholder="enter youtube link"
-          value={youtubeLink}
-          onChange={(e) => {
-            setYoutubeLink(e.target.value);
-          }}
-        />
-        <input type="button" onClick={fetchSongInfo} value={"submit"} />
-        <input
-          type="button"
-          onClick={switchServiceProvider}
-          value={`Using ${serviceProvider}`}
-        />
-      </form>
-      <DisplayList songList={[sampleSong, sampleSong]} />
-      <ViewEditSong song={sampleSong} />
-    </div>
+    <Container fluid>
+      <Row>
+        <Col xxl={8}>
+          <CreateSong />
+          <DisplayList songList={musicList} />
+        </Col>
+        <Col xxl={4}>
+          <SwitchResult songList={extractedSongResults} />
+          <ViewEditSong song={songInfo} />
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

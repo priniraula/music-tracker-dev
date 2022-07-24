@@ -4,6 +4,7 @@ import { FormatSecondsToMinutes } from "../../utilities/convertTime";
 
 const DisplayList = ({ songList }) => {
   const displaySongOnTable = (song, entry) => {
+    console.log("the song is ", song);
     return (
       <tr key={entry}>
         <td>{entry}</td>
@@ -16,17 +17,19 @@ const DisplayList = ({ songList }) => {
       </tr>
     );
   };
-
+  console.log("recieved list", songList);
   return (
-    <Table striped border hover>
+    <Table striped border="secondary" hover>
       <thead>
-        <th>#</th>
-        <th>song name</th>
-        <th>time</th>
-        <th>artist</th>
-        <th>album</th>
-        <th>genre</th>
-        <th>favorite</th>
+        <tr>
+          <th>#</th>
+          <th>song name</th>
+          <th>time</th>
+          <th>artist</th>
+          <th>album</th>
+          <th>genre</th>
+          <th>favorite</th>
+        </tr>
       </thead>
       <tbody>
         {songList.map((d, idx) => {

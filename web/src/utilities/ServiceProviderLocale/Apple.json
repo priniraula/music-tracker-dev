@@ -1,0 +1,15 @@
+{
+    "title": "trackName",
+    "artist": "artistName",
+    "coverArt": "artworkUrl100",
+    "album": "collectionName",
+    "albumExplicit": "collectionExplicitness",
+    "discCount": "discCount",
+    "discNum": "discNumber",
+    "genre": "primaryGenreName",
+    "releaseDate": "releaseDate",
+    "albumTrackCount": "trackCount",
+    "trackNum": "trackNumber",
+    "trackExplicit": "trackExplicitness",
+    "time": "trackTimeMillis"
+}
